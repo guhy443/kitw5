@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Kite AI Wind Runner — Day 5 Quiz</title>
+<style>
+:root{--bg1:#4a90e2;--bg2:#7bc6cc;--card:#ffffff;--accent:#4a90e2;--accent-2:#357ab8;--success:#28a745;--danger:#dc3545}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Roboto,Segoe UI,system-ui,Arial;background:linear-gradient(135deg,var(--bg1),var(--bg2));min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;color:#0b2540}
+.container{width:100%;max-width:760px}
+.card{background:var(--card);border-radius:14px;padding:22px;box-shadow:0 10px 30px rgba(11,37,64,0.15)}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.header h1{font-size:20px;margin:0}
+.header p{margin:0;color:rgba(11,37,64,0.6);font-size:13px}
+.start-screen{text-align:center;padding:18px}
+.btn{display:inline-block;padding:12px 18px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;cursor:pointer}
+.btn:hover{background:var(--accent-2)}
+.progress-wrap{height:12px;background:#eef3f6;border-radius:10px;overflow:hidden;margin-bottom:16px}
+.progress{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .3s}
+.question{font-size:18px;margin:10px 0 18px 0}
+.options{display:grid;grid-template-columns:1fr;gap:10px}
+.option-btn{padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;text-align:left}
+.option-btn:hover{background:var(--accent-2)}
+.option-btn[disabled]{opacity:.8;cursor:default}
+.footer{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+.small{font-size:13px;color:rgba(11,37,64,0.6)}
+.result{display:none;text-align:center;padding:18px}
+.score{font-size:22px;font-weight:700;margin:10px 0}
+.restart{background:var(--success);border:none;color:#fff;padding:10px 16px;border-radius:10px;cursor:pointer}
+.restart:hover{opacity:.95}
+.note{font-size:13px;color:rgba(11,37,64,0.65);margin-top:8px}
+@media (max-width:520px){.question{font-size:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card" role="application">
+    <div class="header">
+      <div>
+        <h1>🌬️ Kite AI Wind Runner — Day 5</h1>
+        <p class="small">Fresh quiz — test your Kite AI & on-chain agent knowledge</p>
+      </div>
+      <div class="small">Questions: <strong id="total">10</strong></div>
+    </div>
+
+    <!-- Start Screen -->
+    <div id="startScreen" class="start-screen">
+      <h2>Ready to take Day 5?</h2>
+      <p class="note">10 fresh questions • progress bar • score tracking • restart anytime</p>
+      <div style="margin-top:16px">
+        <button id="startBtn" class="btn">Start Quiz</button>
+      </div>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quizScreen" style="display:none">
+      <div class="progress-wrap"><div id="progress" class="progress" aria-hidden="true"></div></div>
+      <div id="qbox">
+        <div id="qnum" class="small">Question 1 / 10</div>
+        <div id="question" class="question">Question text</div>
+        <div id="options" class="options" role="list"></div>
+      </div>
+      <div class="footer">
+        <div class="small">Score: <strong id="liveScore">0</strong></div>
+        <div class="small" id="hint">Good luck!</div>
+      </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="resultScreen" class="result" style="display:none">
+      <h2>🎉 Completed — Day 5</h2>
+      <div class="score" id="finalScore">You scored 0 / 10</div>
+      <button id="restartBtn" class="restart">Restart Quiz</button>
+      <p class="note">Share your score with #WindRunner & tag @GoKiteAI</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const data = [
+  {q: "What does Wind Runner mainly reward participants for?", opts: ["Posting memes","Creating high-quality AI content","Buying tokens","Tagging random users"], a:1},
+  {q: "Kite AI uses which kind of AI agents?", opts: ["Centralized server bots","On-chain autonomous agents","Offline assistants","Discord-only bots"], a:1},
+  {q: "Which campaign element ensures your content is permanently verifiable?", opts: ["Screenshot","On-chain record","Cloud file","Discord message"], a:1},
+  {q: "What does UGC stand for?", opts: ["User Generated Content","Unique Global Campaign","Universal Group Chain","Unlocked Game Code"], a:0},
+  {q: "In Kite AI, what connects creators’ identity with achievements?", opts: ["AI certificates","SBT (Soulbound Token)","NFT badges only","ERC-20 tokens"], a:1},
+  {q: "Wind Runner content should reflect:", opts: ["Original ideas + AI innovation","Copy-paste trends","Paid ads","Random memes"], a:0},
+  {q: "To get noticed by the Kite AI team, creators should:", opts: ["Tag @GoKiteAI & use campaign hashtags","Post without any tag","DM random admins","Buy fake followers"], a:0},
+  {q: "What’s a key advantage of on-chain AI agents?", opts: ["They are transparent & unstoppable","They need permission to run","They depend on a single server","They delete after use"], a:0},
+  {q: "What is one goal of Wind Runner UGC missions?", opts: ["To educate and grow the AI community","To sell merchandise","To increase token price","To copy older campaigns"], a:0},
+  {q: "Which hashtag combination fits the Wind Runner Day 5 theme?", opts: ["#WindRunner #AIonChain #UGC","#CopyAndPost #NFTdrop","#TokenPump #Airdrop","#CryptoMeme #SBTLOL"], a:0}
+];
+
+let idx = 0; let score = 0;
+const total = data.length;
+document.getElementById('total').textContent = total;
+const startBtn = document.getElementById('startBtn');
+const startScreen = document.getElementById('startScreen');
+const quizScreen = document.getElementById('quizScreen');
+const resultScreen = document.getElementById('resultScreen');
+const progressEl = document.getElementById('progress');
+const qnumEl = document.getElementById('qnum');
+const questionEl = document.getElementById('question');
+const optionsEl = document.getElementById('options');
+const liveScoreEl = document.getElementById('liveScore');
+const hintEl = document.getElementById('hint');
+const finalScoreEl = document.getElementById('finalScore');
+
+startBtn.addEventListener('click', ()=>{
+  startScreen.style.display='none';
+  quizScreen.style.display='block';
+  idx = 0; score = 0; liveScoreEl.textContent = score; hintEl.textContent = 'Answer the questions';
+  loadQuestion();
+});
+
+function loadQuestion(){
+  const item = data[idx];
+  qnumEl.textContent = `Question ${idx+1} / ${total}`;
+  questionEl.textContent = item.q;
+  optionsEl.innerHTML = '';
+  item.opts.forEach((opt,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt;
+    btn.onclick = ()=>select(i,btn);
+    optionsEl.appendChild(btn);
+  });
+  progressEl.style.width = `${Math.round((idx/total)*100)}%`;
+}
+
+function select(choice,btn){
+  // disable all
+  Array.from(optionsEl.children).forEach(b=>b.disabled=true);
+  const correct = data[idx].a;
+  if(choice===correct){
+    score++;
+    btn.style.background = 'var(--success)';
+    hintEl.textContent = 'Nice! ✅';
+  } else {
+    btn.style.background = 'var(--danger)';
+    // highlight correct
+    const correctBtn = Array.from(optionsEl.children)[correct];
+    if(correctBtn) correctBtn.style.background = 'var(--success)';
+    hintEl.textContent = 'Answer recorded';
+  }
+  liveScoreEl.textContent = score;
+  // next question after short delay
+  setTimeout(()=>{
+    idx++;
+    if(idx<total) loadQuestion(); else finish();
+  },600);
+}
+
+function finish(){
+  quizScreen.style.display='none';
+  resultScreen.style.display='block';
+  finalScoreEl.textContent = `You scored ${score} / ${total}`;
+  progressEl.style.width = '100%';
+}
+
+document.getElementById('restartBtn').addEventListener('click', ()=>{
+  resultScreen.style.display='none';
+  startScreen.style.display='block';
+});
+</script>
+</body>
+</html>
